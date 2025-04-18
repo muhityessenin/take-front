@@ -41,7 +41,7 @@ export default function SalesDashboard() {
 
 
     useEffect(() => {
-        axios.get("http://localhost:8080/api/sales/today")
+        axios.get("https://take-backend-yibv.onrender.com/api/sales/today")
             .then((res) => {
                 const formatted = res.data.map((s) => {
                     const date = new Date(s.soldAt);

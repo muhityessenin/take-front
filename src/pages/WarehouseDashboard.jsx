@@ -64,7 +64,7 @@ export default function WarehouseDashboard() {
 
     const fetchItems = async (brand = "") => {
         try {
-            const url = brand ? `http://localhost:8080/api/items?brand=${encodeURIComponent(brand)}` : "http://localhost:8080/api/items";
+            const url = brand ? `https://take-backend-yibv.onrender.com/api/items?brand=${encodeURIComponent(brand)}` : "https://take-backend-yibv.onrender.com/api/items";
             const res = await axios.get(url);
             const items = res.data;
             setInventory(items);
@@ -90,9 +90,13 @@ export default function WarehouseDashboard() {
 
     const handleSubmitNewItem = async () => {
         try {
-            await axios.post("http://localhost:8080/api/items", newItem);
+            await axios.post("https://take-backend-yibv.onrender.com/api/items", {
+                ...newItem,
+                stock: Number(newItem.stock),
+                price: Number(newItem.price)
+            });
             setShowAddModal(false);
-            setNewItem({ name: "", model: "", partNumber: "", brand: "", stock: 0, price: 0, images: [] });
+            setNewItem({ name: "", model: "", partNumber: "", brand: "", stock: "", price: "", images: [] });
             fetchItems(selectedBrand);
         } catch (error) {
             console.error("Ошибка при добавлении товара:", error);
@@ -126,7 +130,7 @@ export default function WarehouseDashboard() {
 
     const handleConfirmSale = async () => {
         try {
-            await axios.post("http://localhost:8080/api/sale", {
+            await axios.post("https://take-backend-yibv.onrender.com/api/sale", {
                 itemId: itemToSell.id,
                 quantity: saleQuantity,
                 customer: customer
