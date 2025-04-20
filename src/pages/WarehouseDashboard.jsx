@@ -53,11 +53,12 @@ export default function WarehouseDashboard() {
     const [customer, setCustomer] = useState("");
     const [newItem, setNewItem] = useState({
         name: "",
-        model: "",
         partNumber: "",
         brand: "",
+        model: "",
         stock: "",
         price: "",
+        wholesalePrice: "",
         images: []
     });
     const [imageModal, setImageModal] = useState({ open: false, images: [], index: 0 });
@@ -90,17 +91,23 @@ export default function WarehouseDashboard() {
 
     const handleSubmitNewItem = async () => {
         try {
-            await axios.post("https://take-backend-yibv.onrender.com/api/items", {
-                ...newItem,
-                stock: Number(newItem.stock),
-                price: Number(newItem.price)
-            });
+            if (newItem.id) {
+                await axios.patch(`https://take-backend-yibv.onrender.com/api/items/${newItem.id}`, newItem);
+            } else {
+                await axios.post("https://take-backend-yibv.onrender.com/api/items", newItem);
+            }
+
             setShowAddModal(false);
-            setNewItem({ name: "", model: "", partNumber: "", brand: "", stock: "", price: "", images: [] });
+            setNewItem({ name: "", model: "", partNumber: "", brand: "", stock: "", price: "", wholesalePrice: "", images: [] });
             fetchItems(selectedBrand);
         } catch (error) {
-            console.error("Ошибка при добавлении товара:", error);
+            console.error("Ошибка при добавлении/обновлении товара:", error);
         }
+    };
+
+    const handleEditItem = (item) => {
+        setNewItem(item);
+        setShowAddModal(true);
     };
 
     const openImageViewer = (images) => {
@@ -204,6 +211,7 @@ export default function WarehouseDashboard() {
                             <TableCell>Марка</TableCell>
                             <TableCell>Остаток</TableCell>
                             <TableCell>Цена</TableCell>
+                            <TableCell>Оптом цена</TableCell>
                             <TableCell>Артикул</TableCell>
                             <TableCell>Действие</TableCell>
                         </TableRow>
@@ -215,13 +223,18 @@ export default function WarehouseDashboard() {
                                     <Avatar src={item.images?.[0]?.url || ""} alt={item.name} sx={{ width: 50, height: 50, cursor: 'pointer' }} variant="rounded" onClick={() => openImageViewer(item.images)} />
                                 </TableCell>
                                 <TableCell>{item.name}</TableCell>
-                                <TableCell>{item.model}</TableCell>
+
                                 <TableCell>{item.brand}</TableCell>
+                                <TableCell>{item.model}</TableCell>
                                 <TableCell>{item.stock}</TableCell>
                                 <TableCell>{item.price}</TableCell>
+                                <TableCell>{item.wholesalePrice || "-"}</TableCell>
                                 <TableCell>{item.partNumber}</TableCell>
                                 <TableCell>
-                                    <Button size="small" variant="outlined" onClick={() => openSellDialog(item)}>Продать</Button>
+                                    <Stack direction="column" spacing={1}>
+                                        <Button size="small" variant="outlined" onClick={() => openSellDialog(item)}>Продать</Button>
+                                        <Button size="small" variant="contained" onClick={() => handleEditItem(item)}>Изменить</Button>
+                                    </Stack>
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -300,6 +313,22 @@ export default function WarehouseDashboard() {
                                 }}
                             />
                         </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="Оптом цена"
+                                type="text"
+                                inputMode="numeric"
+                                value={newItem.wholesalePrice}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (/^\d*$/.test(value)) {
+                                        setNewItem({ ...newItem, wholesalePrice: value });
+                                    }
+                                }}
+                            />
+                        </Grid>
+
                     </Grid>
                 </DialogContent>
                 <DialogActions>
@@ -354,6 +383,5 @@ export default function WarehouseDashboard() {
                 </DialogContent>
             </Dialog>
         </Container>
-
     );
 }
