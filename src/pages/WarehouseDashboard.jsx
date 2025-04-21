@@ -32,7 +32,7 @@ import axios from "axios";
 
 const BRANDS = [
     "Toyota", "Honda", "Nissan", "Mazda", "Mitsubishi",
-    "Hyundai", "Kia", "Chevrolet", "Ford", "Volkswagen",
+    "Hyundai", "Kia", "Chevrolet", "Changan",  "Ford", "Volkswagen",
     "Mercedes", "BMW", "Audi", "Lexus", "Subaru",
     "Skoda", "Peugeot", "Renault", "Opel", "Volvo",
     "Suzuki", "Daewoo", "Chery", "Geely", "FAW"
