@@ -94,7 +94,16 @@ export default function WarehouseDashboard() {
             if (newItem.id) {
                 await axios.patch(`https://take-backend-yibv.onrender.com/api/items/${newItem.id}`, newItem);
             } else {
-                await axios.post("https://take-backend-yibv.onrender.com/api/items", newItem);
+                await axios.post("https://take-backend-yibv.onrender.com/api/items", {
+                    name: newItem.name,
+                    model: newItem.model,
+                    partNumber: newItem.partNumber,
+                    brand: newItem.brand,
+                    stock: Number(newItem.stock),
+                    price: Number(newItem.price),
+                    wholesalePrice: Number(newItem.wholesalePrice),
+                    images: []
+                });
             }
 
             setShowAddModal(false);
@@ -137,6 +146,11 @@ export default function WarehouseDashboard() {
 
     const handleConfirmSale = async () => {
         try {
+            console.log({
+                itemId: itemToSell.id,
+                quantity: Number(saleQuantity),
+                customer: customer
+            });
             await axios.post("https://take-backend-yibv.onrender.com/api/sale", {
                 itemId: itemToSell.id,
                 quantity: saleQuantity,

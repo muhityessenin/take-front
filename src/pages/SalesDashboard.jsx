@@ -34,11 +34,16 @@ import axios from "axios";
 
 export default function SalesDashboard() {
     const [sales, setSales] = useState([]);
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
+    const todayStr = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const [startDate, setStartDate] = useState(todayStr);
+    const [endDate, setEndDate] = useState(todayStr);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedBrands, setSelectedBrands] = useState([]);
-    const [availableBrands, setAvailableBrands] = useState([]);
+    const [availableBrands, setAvailableBrands] = useState(["Toyota", "Honda", "Nissan", "Mazda", "Mitsubishi",
+        "Hyundai", "Kia", "Chevrolet", "Changan",  "Ford", "Volkswagen",
+        "Mercedes", "BMW", "Audi", "Lexus", "Subaru",
+        "Skoda", "Peugeot", "Renault", "Opel", "Volvo",
+        "Suzuki", "Daewoo", "Chery", "Geely", "FAW"]);
 
     useEffect(() => {
         axios.get("https://take-backend-yibv.onrender.com/api/sales/today")
@@ -105,11 +110,30 @@ export default function SalesDashboard() {
     const categoryRevenueData = Object.entries(categoryRevenueMap).map(([category, revenue]) => ({ category, revenue }));
 
     return (
-        <Container sx={{ py: 4 }} maxWidth="xl">
-            <Card sx={{ mb: 4, borderRadius: 3 }}>
+        <Container sx={{ py: 4, maxWidth: 'lg', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Grid container spacing={2} mb={2} justifyContent="center">
+                {[{
+                    title: 'Общая выручка', value: totalRevenue
+                }, {
+                    title: 'Проданных товаров', value: totalQuantity
+                }, {
+                    title: 'Самый продаваемый товар', value: bestSellersData.length > 0 ? `${bestSellersData[0].name} (${bestSellersData[0].quantity} шт)` : '-'
+                }].map((block, i) => (
+                    <Grid item xs={12} md={4} key={i}>
+                        <Card sx={{ borderRadius: 3, height: '100%' }}>
+                            <CardContent>
+                                <Typography variant="h6" align="center">{block.title}</Typography>
+                                <Typography variant="h5" align="center">{block.value}</Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
+
+            <Card sx={{ mb: 4, borderRadius: 3, width: '100%' }}>
                 <CardContent>
-                    <Typography variant="h6" gutterBottom>Фильтры</Typography>
-                    <Grid container spacing={2}>
+                    <Typography variant="h6" gutterBottom align="center">Фильтры</Typography>
+                    <Grid container spacing={2} justifyContent="center">
                         <Grid item xs={12} sm={6} md={3}>
                             <TextField fullWidth label="С даты" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} InputLabelProps={{ shrink: true }} />
                         </Grid>
@@ -134,26 +158,7 @@ export default function SalesDashboard() {
                 </CardContent>
             </Card>
 
-            <Grid container spacing={2} mb={2}>
-                {[{
-                    title: 'Общая выручка', value: totalRevenue
-                }, {
-                    title: 'Проданных товаров', value: totalQuantity
-                }, {
-                    title: 'Самый продаваемый товар', value: bestSellersData.length > 0 ? `${bestSellersData[0].name} (${bestSellersData[0].quantity} шт)` : '-'
-                }].map((block, i) => (
-                    <Grid item xs={12} md={4} key={i}>
-                        <Card sx={{ borderRadius: 3, height: '100%' }}>
-                            <CardContent>
-                                <Typography variant="h6">{block.title}</Typography>
-                                <Typography variant="h5">{block.value}</Typography>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
-
-            <Card sx={{ mb: 4, borderRadius: 3 }}>
+            <Card sx={{ mb: 4, borderRadius: 3, width: '100%' }}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom>График выручки по датам</Typography>
                     <Box sx={{ height: { xs: 250, sm: 300 } }}>
@@ -164,12 +169,12 @@ export default function SalesDashboard() {
                 </CardContent>
             </Card>
 
-            <Grid container spacing={2} mb={2}>
+            <Grid container spacing={2} mb={2} justifyContent="center">
                 <Grid item xs={12} md={6}><Card sx={{ borderRadius: 3 }}><CardContent><Typography variant="h6" gutterBottom>Топ продаваемых товаров</Typography><Box sx={{ height: { xs: 250, sm: 300 } }}><ResponsiveContainer width="100%" height="100%"><BarChart data={bestSellersData.slice(0, 5)}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis /><Tooltip /><Legend /><Bar dataKey="quantity" fill="#1976d2" barSize={35} /></BarChart></ResponsiveContainer></Box></CardContent></Card></Grid>
                 <Grid item xs={12} md={6}><Card sx={{ borderRadius: 3 }}><CardContent><Typography variant="h6" gutterBottom>Выручка по категориям</Typography><Box sx={{ height: { xs: 250, sm: 300 } }}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie dataKey="revenue" data={categoryRevenueData} outerRadius={90} label={(entry) => entry.category}>{categoryRevenueData.map((entry, index) => (<Cell key={`cell-${index}`} />))}</Pie><Tooltip /></PieChart></ResponsiveContainer></Box></CardContent></Card></Grid>
             </Grid>
 
-            <Card sx={{ borderRadius: 3 }}>
+            <Card sx={{ borderRadius: 3, width: '100%' }}>
                 <CardContent>
                     <Typography variant="h6" gutterBottom>Все продажи</Typography>
                     <Box sx={{ overflowX: 'auto' }}>
