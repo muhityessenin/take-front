@@ -12,7 +12,8 @@ import {
     TableHead,
     TableRow,
     TableCell,
-    TableBody
+    TableBody,
+    Autocomplete
 } from "@mui/material";
 import {
     BarChart,
@@ -36,9 +37,8 @@ export default function SalesDashboard() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedBrand, setSelectedBrand] = useState("");
+    const [selectedBrands, setSelectedBrands] = useState([]);
     const [availableBrands, setAvailableBrands] = useState([]);
-
 
     useEffect(() => {
         axios.get("https://take-backend-yibv.onrender.com/api/sales/today")
@@ -60,9 +60,8 @@ export default function SalesDashboard() {
                     setStartDate(formatted[0].date);
                     setEndDate(formatted[0].date);
                 }
-                const brands = Array.from(new Set(formatted.map((s) => s.category).filter(Boolean)));
+                const brands = Array.from(new Set(formatted.map(s => s.category).filter(Boolean)));
                 setAvailableBrands(brands);
-
             })
             .catch((err) => console.error("Ошибка при загрузке продаж:", err));
     }, []);
@@ -72,10 +71,9 @@ export default function SalesDashboard() {
         const from = startDate ? new Date(startDate) : null;
         const to = endDate ? new Date(endDate) : null;
         const matchesDate = (!from || saleDate >= from) && (!to || saleDate <= to);
-        const matchesText = sale.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            sale.category.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesDate && matchesText && (selectedBrand === "" || sale.category === selectedBrand);
-
+        const matchesText = sale.itemName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(sale.category);
+        return matchesDate && matchesText && matchesBrand;
     });
 
     const totalRevenue = filteredSales.reduce((sum, sale) => sum + sale.totalPrice, 0);
@@ -112,47 +110,27 @@ export default function SalesDashboard() {
                 <CardContent>
                     <Typography variant="h6" gutterBottom>Фильтры</Typography>
                     <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6} md={3}><TextField fullWidth label="С даты" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} InputLabelProps={{ shrink: true }} /></Grid>
-                        <Grid item xs={12} sm={6} md={3}><TextField fullWidth label="По дату" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} InputLabelProps={{ shrink: true }} /></Grid>
-                        <Grid item xs={12} md={6}><TextField fullWidth label="Поиск по названию или категории" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                            <TextField fullWidth label="С даты" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} InputLabelProps={{ shrink: true }} />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                            <TextField fullWidth label="По дату" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} InputLabelProps={{ shrink: true }} />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <TextField fullWidth label="Поиск по названию" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Autocomplete
+                                multiple
+                                options={availableBrands}
+                                value={selectedBrands}
+                                onChange={(e, newValue) => setSelectedBrands(newValue)}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Марка" placeholder="Выбрать" />
+                                )}
+                            />
+                        </Grid>
                     </Grid>
-                    <Box mt={2} display="flex" flexWrap="wrap" gap={1}>
-                        <Typography sx={{ mr: 1, fontWeight: 500 }}>Марка:</Typography>
-                        <Box display="flex" flexWrap="wrap" gap={1}>
-                            <Box
-                                component="button"
-                                onClick={() => setSelectedBrand("")}
-                                style={{
-                                    padding: "6px 12px",
-                                    borderRadius: 16,
-                                    border: selectedBrand === "" ? "2px solid #1976d2" : "1px solid #ccc",
-                                    backgroundColor: selectedBrand === "" ? "#1976d2" : "#fff",
-                                    color: selectedBrand === "" ? "#fff" : "#000",
-                                    cursor: "pointer"
-                                }}
-                            >
-                                Все
-                            </Box>
-                            {availableBrands.map((brand) => (
-                                <Box
-                                    key={brand}
-                                    component="button"
-                                    onClick={() => setSelectedBrand(brand)}
-                                    style={{
-                                        padding: "6px 12px",
-                                        borderRadius: 16,
-                                        border: selectedBrand === brand ? "2px solid #1976d2" : "1px solid #ccc",
-                                        backgroundColor: selectedBrand === brand ? "#1976d2" : "#fff",
-                                        color: selectedBrand === brand ? "#fff" : "#000",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    {brand}
-                                </Box>
-                            ))}
-                        </Box>
-                    </Box>
-
                 </CardContent>
             </Card>
 
@@ -188,8 +166,7 @@ export default function SalesDashboard() {
 
             <Grid container spacing={2} mb={2}>
                 <Grid item xs={12} md={6}><Card sx={{ borderRadius: 3 }}><CardContent><Typography variant="h6" gutterBottom>Топ продаваемых товаров</Typography><Box sx={{ height: { xs: 250, sm: 300 } }}><ResponsiveContainer width="100%" height="100%"><BarChart data={bestSellersData.slice(0, 5)}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="name" /><YAxis /><Tooltip /><Legend /><Bar dataKey="quantity" fill="#1976d2" barSize={35} /></BarChart></ResponsiveContainer></Box></CardContent></Card></Grid>
-                <Grid item xs={12} md={6}><Card sx={{ borderRadius: 3 }}><CardContent><Typography variant="h6" gutterBottom>Выручка по категориям</Typography><Box sx={{ height: { xs: 300, sm: 400 } }}>
-                    <ResponsiveContainer width="100%" height="100%"><PieChart><Pie dataKey="revenue" data={categoryRevenueData} outerRadius={120} label={(entry) => entry.category}>{categoryRevenueData.map((entry, index) => (<Cell key={`cell-${index}`} />))}</Pie><Tooltip /></PieChart></ResponsiveContainer></Box></CardContent></Card></Grid>
+                <Grid item xs={12} md={6}><Card sx={{ borderRadius: 3 }}><CardContent><Typography variant="h6" gutterBottom>Выручка по категориям</Typography><Box sx={{ height: { xs: 250, sm: 300 } }}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie dataKey="revenue" data={categoryRevenueData} outerRadius={90} label={(entry) => entry.category}>{categoryRevenueData.map((entry, index) => (<Cell key={`cell-${index}`} />))}</Pie><Tooltip /></PieChart></ResponsiveContainer></Box></CardContent></Card></Grid>
             </Grid>
 
             <Card sx={{ borderRadius: 3 }}>
