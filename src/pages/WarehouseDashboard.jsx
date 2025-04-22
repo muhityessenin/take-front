@@ -29,6 +29,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, ArrowForward } from "@mui/icons-material";
 import axios from "axios";
+const token = localStorage.getItem("authToken");
 
 const BRANDS = [
     "Toyota", "Honda", "Nissan", "Mazda", "Mitsubishi",
@@ -66,7 +67,11 @@ export default function WarehouseDashboard() {
     const fetchItems = async (brand = "") => {
         try {
             const url = brand ? `https://take-backend-yibv.onrender.com/api/items?brand=${encodeURIComponent(brand)}` : "https://take-backend-yibv.onrender.com/api/items";
-            const res = await axios.get(url);
+            const res = await axios.get(url, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             const items = res.data;
             setInventory(items);
             const brands = Array.from(new Set(items.map(item => item.brand).filter(Boolean)));
@@ -92,18 +97,34 @@ export default function WarehouseDashboard() {
     const handleSubmitNewItem = async () => {
         try {
             if (newItem.id) {
-                await axios.patch(`https://take-backend-yibv.onrender.com/api/items/${newItem.id}`, newItem);
+                await axios.patch(
+                    `https://take-backend-yibv.onrender.com/api/items/${newItem.id}`,
+                    newItem,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("authToken")}`
+                        }
+                    }
+                );
             } else {
-                await axios.post("https://take-backend-yibv.onrender.com/api/items", {
-                    name: newItem.name,
-                    model: newItem.model,
-                    partNumber: newItem.partNumber,
-                    brand: newItem.brand,
-                    stock: Number(newItem.stock),
-                    price: Number(newItem.price),
-                    wholesalePrice: Number(newItem.wholesalePrice),
-                    images: []
-                });
+                await axios.post(
+                    "https://take-backend-yibv.onrender.com/api/items",
+                    {
+                        name: newItem.name,
+                        model: newItem.model,
+                        partNumber: newItem.partNumber,
+                        brand: newItem.brand,
+                        stock: Number(newItem.stock),
+                        price: Number(newItem.price),
+                        wholesalePrice: Number(newItem.wholesalePrice),
+                        images: []
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("authToken")}`
+                        }
+                    }
+                );
             }
 
             setShowAddModal(false);
@@ -151,11 +172,20 @@ export default function WarehouseDashboard() {
                 quantity: Number(saleQuantity),
                 customer: customer
             });
-            await axios.post("https://take-backend-yibv.onrender.com/api/sale", {
-                itemId: itemToSell.id,
-                quantity: saleQuantity,
-                customer: customer
-            });
+            await axios.post(
+                "https://take-backend-yibv.onrender.com/api/sale",
+                {
+                    itemId: itemToSell.id,
+                    quantity: saleQuantity,
+                    customer: customer
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("authToken")}`
+                    }
+                }
+            );
+
             setShowSellModal(false);
             fetchItems(selectedBrand);
         } catch (error) {

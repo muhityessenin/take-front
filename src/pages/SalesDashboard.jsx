@@ -46,7 +46,14 @@ export default function SalesDashboard() {
         "Suzuki", "Daewoo", "Chery", "Geely", "FAW"]);
 
     useEffect(() => {
-        axios.get("https://take-backend-yibv.onrender.com/api/sales/today")
+        const token = localStorage.getItem("authToken");
+
+        axios
+            .get("https://take-backend-yibv.onrender.com/api/sales", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
             .then((res) => {
                 const formatted = res.data.map((s) => {
                     const date = new Date(s.soldAt);
@@ -57,19 +64,23 @@ export default function SalesDashboard() {
                         quantity: s.quantity,
                         unitPrice: s.Item?.price || 0,
                         totalPrice: s.totalPrice,
-                        date: date.toISOString().slice(0, 10) // YYYY-MM-DD
+                        date: date.toISOString().slice(0, 10)
                     };
                 });
+
                 setSales(formatted);
+
                 if (formatted.length > 0) {
                     setStartDate(formatted[0].date);
                     setEndDate(formatted[0].date);
                 }
+
                 const brands = Array.from(new Set(formatted.map(s => s.category).filter(Boolean)));
                 setAvailableBrands(brands);
             })
             .catch((err) => console.error("Ошибка при загрузке продаж:", err));
     }, []);
+
 
     const filteredSales = sales.filter((sale) => {
         const saleDate = new Date(sale.date);
