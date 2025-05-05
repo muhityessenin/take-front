@@ -34,12 +34,13 @@ import axios from "axios";
 
 export default function SalesDashboard() {
     const [sales, setSales] = useState([]);
-    const todayStr = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const todayStr = new Date().toISOString().slice(0, 10);
     const [startDate, setStartDate] = useState(todayStr);
     const [endDate, setEndDate] = useState(todayStr);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedBrands, setSelectedBrands] = useState([]);
-    const [availableBrands, setAvailableBrands] = useState(["Toyota", "Honda", "Nissan", "Mazda", "Mitsubishi",
+    const [availableBrands, setAvailableBrands] = useState(
+        ["Toyota", "Honda", "Nissan", "Mazda", "Mitsubishi",
         "Hyundai", "Kia", "Chevrolet", "Changan",  "Ford", "Volkswagen",
         "Mercedes", "BMW", "Audi", "Lexus", "Subaru",
         "Skoda", "Peugeot", "Renault", "Opel", "Volvo",

@@ -60,7 +60,9 @@ export default function WarehouseDashboard() {
         stock: "",
         price: "",
         wholesalePrice: "",
-        images: []
+        images: [],
+        imageFiles: [],
+        imagePreviews: []
     });
     const [imageModal, setImageModal] = useState({ open: false, images: [], index: 0 });
 
@@ -96,39 +98,56 @@ export default function WarehouseDashboard() {
 
     const handleSubmitNewItem = async () => {
         try {
+            const formData = new FormData();
+            formData.append("name", newItem.name);
+            formData.append("model", newItem.model);
+            formData.append("partNumber", newItem.partNumber);
+            formData.append("brand", newItem.brand);
+            formData.append("stock", Number(newItem.stock));
+            formData.append("price", Number(newItem.price));
+            formData.append("wholesalePrice", Number(newItem.wholesalePrice));
+
+            newItem.imageFiles.forEach((file) => {
+                formData.append("images", file);
+            });
+
             if (newItem.id) {
                 await axios.patch(
                     `https://take-backend-yibv.onrender.com/api/items/${newItem.id}`,
-                    newItem,
+                    formData,
                     {
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem("authToken")}`
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "multipart/form-data"
                         }
                     }
                 );
             } else {
                 await axios.post(
                     "https://take-backend-yibv.onrender.com/api/items",
-                    {
-                        name: newItem.name,
-                        model: newItem.model,
-                        partNumber: newItem.partNumber,
-                        brand: newItem.brand,
-                        stock: Number(newItem.stock),
-                        price: Number(newItem.price),
-                        wholesalePrice: Number(newItem.wholesalePrice),
-                        images: []
-                    },
+                    formData,
                     {
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem("authToken")}`
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "multipart/form-data"
                         }
                     }
                 );
             }
 
             setShowAddModal(false);
-            setNewItem({ name: "", model: "", partNumber: "", brand: "", stock: "", price: "", wholesalePrice: "", images: [] });
+            setNewItem({
+                name: "",
+                model: "",
+                partNumber: "",
+                brand: "",
+                stock: "",
+                price: "",
+                wholesalePrice: "",
+                images: [],
+                imageFiles: [],
+                imagePreviews: []
+            });
             fetchItems(selectedBrand);
         } catch (error) {
             console.error("Ошибка при добавлении/обновлении товара:", error);
@@ -136,26 +155,47 @@ export default function WarehouseDashboard() {
     };
 
     const handleEditItem = (item) => {
-        setNewItem(item);
+        setNewItem({
+            ...item,
+            imageFiles: [],
+            imagePreviews: [],
+            images: item.images || []
+        });
         setShowAddModal(true);
     };
 
+
     const openImageViewer = (images) => {
-        if (images?.length > 0) {
+        if (Array.isArray(images) && images.length > 0) {
             setImageModal({ open: true, images, index: 0 });
+        } else {
+            console.warn("Нет изображений для просмотра");
         }
     };
+
 
     const closeImageViewer = () => {
         setImageModal({ open: false, images: [], index: 0 });
     };
 
     const handleNextImage = () => {
-        setImageModal((prev) => ({ ...prev, index: (prev.index + 1) % prev.images.length }));
+        setImageModal((prev) => {
+            if (!Array.isArray(prev.images) || prev.images.length === 0) return prev;
+            return {
+                ...prev,
+                index: (prev.index + 1) % prev.images.length
+            };
+        });
     };
 
     const handlePrevImage = () => {
-        setImageModal((prev) => ({ ...prev, index: (prev.index - 1 + prev.images.length) % prev.images.length }));
+        setImageModal((prev) => {
+            if (!Array.isArray(prev.images) || prev.images.length === 0) return prev;
+            return {
+                ...prev,
+                index: (prev.index - 1 + prev.images.length) % prev.images.length
+            };
+        });
     };
 
     const openSellDialog = (item) => {
@@ -374,6 +414,42 @@ export default function WarehouseDashboard() {
                         </Grid>
 
                     </Grid>
+                    <Button variant="outlined" component="label" fullWidth>
+                        ЗАГРУЗИТЬ ФОТО
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            hidden
+                            onChange={(e) => {
+                                const files = Array.from(e.target.files);
+                                const previews = files.map(file => URL.createObjectURL(file));
+
+                                setNewItem(prev => ({
+                                    ...prev,
+                                    imageFiles: [...prev.imageFiles, ...files],
+                                    imagePreviews: [...prev.imagePreviews, ...previews]
+                                }));
+                            }}
+
+                        />
+                    </Button>
+                    {newItem.imagePreviews.length > 0 && (
+                        <Box mt={2} display="flex" flexWrap="wrap" gap={2}>
+                            {newItem.imagePreviews.map((src, index) => (
+                                <Box key={index}>
+                                    <img
+                                        src={src}
+                                        alt={`preview-${index}`}
+                                        style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }}
+                                    />
+                                </Box>
+                            ))}
+                        </Box>
+                    )}
+
+
+
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setShowAddModal(false)}>Отмена</Button>
@@ -410,7 +486,7 @@ export default function WarehouseDashboard() {
             <Dialog open={imageModal.open} onClose={closeImageViewer} maxWidth="md" fullWidth>
                 <DialogTitle>Фото товара</DialogTitle>
                 <DialogContent sx={{ textAlign: 'center' }}>
-                    {imageModal.images.length > 0 && (
+                    {Array.isArray(imageModal.images) && imageModal.images.length > 0 && (
                         <Box>
                             <img
                                 src={imageModal.images[imageModal.index].url}
