@@ -301,7 +301,13 @@ export default function WarehouseDashboard() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {inventory.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())).map((item) => (
+                        {inventory.filter(item => {
+                                const lowerTerm = searchTerm.toLowerCase();
+                                return (
+                                    item.name.toLowerCase().includes(lowerTerm) ||
+                                    (item.partNumber && item.partNumber.toLowerCase().includes(lowerTerm))
+                                );
+                            }).map((item) => (
                             <TableRow key={item.id} hover>
                                 <TableCell>
                                     <Avatar src={item.images?.[0]?.url || ""} alt={item.name} sx={{ width: 50, height: 50, cursor: 'pointer' }} variant="rounded" onClick={() => openImageViewer(item.images)} />

@@ -8,7 +8,8 @@ import {
     Link,
     Paper,
     useMediaQuery,
-    useTheme
+    useTheme,
+    CircularProgress
 } from "@mui/material";
 import axios from "axios";
 
@@ -17,8 +18,10 @@ export default function RegisterPage() {
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false); // состояние загрузки
 
     const handleRegister = async () => {
+        setLoading(true);
         try {
             const response = await axios.post("https://take-backend-yibv.onrender.com/api/register", {
                 username,
@@ -26,9 +29,7 @@ export default function RegisterPage() {
             });
 
             const token = response.data.token;
-
             localStorage.setItem("authToken", token);
-
             window.location.href = "/login";
         } catch (error) {
             if (error.response && error.response.status === 400) {
@@ -37,9 +38,10 @@ export default function RegisterPage() {
                 console.error(error);
                 alert("Ошибка при регистрации. Попробуйте позже");
             }
+        } finally {
+            setLoading(false);
         }
     };
-
 
     return (
         <Box
@@ -61,6 +63,7 @@ export default function RegisterPage() {
                     margin="normal"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    disabled={loading}
                 />
 
                 <TextField
@@ -70,6 +73,7 @@ export default function RegisterPage() {
                     margin="normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
                 />
 
                 <Button
@@ -77,10 +81,11 @@ export default function RegisterPage() {
                     color="primary"
                     fullWidth
                     onClick={handleRegister}
+                    disabled={loading}
+                    startIcon={loading && <CircularProgress size={20} />}
                 >
-                    Зарегистрироваться
+                    {loading ? "Регистрируем..." : "Зарегистрироваться"}
                 </Button>
-
 
                 <Typography variant="body2" align="center" sx={{ mt: 2 }}>
                     Уже есть аккаунт?{' '}

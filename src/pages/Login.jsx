@@ -10,7 +10,8 @@ import {
     Stack,
     useMediaQuery,
     useTheme,
-    Link
+    Link,
+    CircularProgress
 } from "@mui/material";
 
 export default function LoginPage() {
@@ -18,19 +19,17 @@ export default function LoginPage() {
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false); // <- добавляем состояние загрузки
 
     const handleLogin = async () => {
+        setLoading(true); // включаем загрузку
         try {
             const response = await axios.post("https://take-backend-yibv.onrender.com/api/login", {
                 username,
                 password
             });
             const token = response.data.token;
-
-            // Сохраняем токен в localStorage
             localStorage.setItem("authToken", token);
-
-            // Редирект на склад
             window.location.href = "/warehouse";
         } catch (error) {
             if (error.response && error.response.status === 401) {
@@ -39,11 +38,10 @@ export default function LoginPage() {
                 console.error(error);
                 alert("Ошибка при входе. Попробуйте позже");
             }
+        } finally {
+            setLoading(false); // выключаем загрузку
         }
     };
-
-
-
 
     return (
         <Container maxWidth="xs">
@@ -73,6 +71,7 @@ export default function LoginPage() {
                             fullWidth
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            disabled={loading}
                         />
 
                         <TextField
@@ -82,12 +81,19 @@ export default function LoginPage() {
                             fullWidth
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            disabled={loading}
                         />
 
-                        <Button variant="contained" color="primary" fullWidth onClick={handleLogin}>
-                            Войти
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            onClick={handleLogin}
+                            disabled={loading}
+                            startIcon={loading && <CircularProgress size={20} />}
+                        >
+                            {loading ? "Входим..." : "Войти"}
                         </Button>
-
 
                         <Typography variant="body2" align="center">
                             Нет аккаунта?{' '}
