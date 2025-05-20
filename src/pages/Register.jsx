@@ -106,7 +106,7 @@ export default function RegisterPage() {
                     >
                         <DirectionsCar sx={{ fontSize: 40, mr: 1 }} />
                         <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
-                            CarHouse
+                            DragonAuto
                         </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ opacity: 0.8 }}>
@@ -230,7 +230,7 @@ export default function RegisterPage() {
             </Paper>
 
             <Typography variant="body2" color="text.secondary" sx={{ mt: 4, opacity: 0.7 }}>
-                © {new Date().getFullYear()} CarHouse. Все права защищены.
+                © {new Date().getFullYear()} DragonAuto. Все права защищены.
             </Typography>
         </Box>
     )
