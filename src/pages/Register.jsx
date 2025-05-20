@@ -1,99 +1,237 @@
-import React, { useState } from "react";
+"use client"
+
+import { useState, useEffect } from "react"
+import axios from "axios"
 import {
     Box,
-    Button,
-    Container,
     TextField,
     Typography,
-    Link,
-    Paper,
+    Button,
+    Stack,
     useMediaQuery,
     useTheme,
-    CircularProgress
-} from "@mui/material";
-import axios from "axios";
+    Link,
+    CircularProgress,
+    Paper,
+    InputAdornment,
+    IconButton,
+    Divider,
+} from "@mui/material"
+import { Visibility, VisibilityOff, Person, Lock, DirectionsCar, AppRegistration } from "@mui/icons-material"
 
 export default function RegisterPage() {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false); // состояние загрузки
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+    const [username, setUsername] = useState("")
+    const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    // Устанавливаем mounted в true после монтирования компонента
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const handleRegister = async () => {
-        setLoading(true);
+        setLoading(true)
         try {
             const response = await axios.post("https://take-backend-yibv.onrender.com/api/register", {
                 username,
-                password
-            });
+                password,
+            })
 
-            const token = response.data.token;
-            localStorage.setItem("authToken", token);
-            window.location.href = "/login";
+            const token = response.data.token
+            localStorage.setItem("authToken", token)
+            window.location.href = "/login"
         } catch (error) {
             if (error.response && error.response.status === 400) {
-                alert("Пользователь уже существует или ошибка данных");
+                alert("Пользователь уже существует или ошибка данных")
             } else {
-                console.error(error);
-                alert("Ошибка при регистрации. Попробуйте позже");
+                console.error(error)
+                alert("Ошибка при регистрации. Попробуйте позже")
             }
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
+
+    const handleKeyPress = (e) => {
+        if (e.key === "Enter") {
+            handleRegister()
+        }
+    }
 
     return (
         <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            minHeight="100vh"
-            bgcolor="#f4f6f8"
-            px={2}
+            sx={{
+                minHeight: "100vh",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+                padding: 2,
+                opacity: mounted ? 1 : 0,
+                transition: "opacity 0.8s ease-in-out",
+            }}
         >
-            <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, width: '100%' }}>
-                <Typography variant="h5" align="center" gutterBottom>
-                    Регистрация
-                </Typography>
-
-                <TextField
-                    label="Имя пользователя"
-                    fullWidth
-                    margin="normal"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    disabled={loading}
-                />
-
-                <TextField
-                    label="Пароль"
-                    type="password"
-                    fullWidth
-                    margin="normal"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
-                />
-
-                <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    onClick={handleRegister}
-                    disabled={loading}
-                    startIcon={loading && <CircularProgress size={20} />}
+            <Paper
+                elevation={4}
+                sx={{
+                    width: "100%",
+                    maxWidth: 400,
+                    borderRadius: 3,
+                    overflow: "hidden",
+                }}
+            >
+                {/* Верхняя часть с логотипом */}
+                <Box
+                    sx={{
+                        bgcolor: "#1e3a8a",
+                        color: "white",
+                        py: 3,
+                        px: 4,
+                        textAlign: "center",
+                        position: "relative",
+                    }}
                 >
-                    {loading ? "Регистрируем..." : "Зарегистрироваться"}
-                </Button>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            mb: 1,
+                        }}
+                    >
+                        <DirectionsCar sx={{ fontSize: 40, mr: 1 }} />
+                        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
+                            CarHouse
+                        </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                        Система управления автоскладом
+                    </Typography>
+                </Box>
 
-                <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-                    Уже есть аккаунт?{' '}
-                    <Link href="/login" underline="hover">
-                        Войдите
-                    </Link>
-                </Typography>
+                {/* Форма регистрации */}
+                <Box sx={{ p: 4 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                        <AppRegistration sx={{ color: "#1e3a8a", mr: 1 }} />
+                        <Typography variant="h6" sx={{ fontWeight: "medium", color: "#1e3a8a" }}>
+                            Регистрация нового пользователя
+                        </Typography>
+                    </Box>
+
+                    <Stack spacing={3}>
+                        <TextField
+                            label="Имя пользователя"
+                            variant="outlined"
+                            fullWidth
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            disabled={loading}
+                            onKeyPress={handleKeyPress}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Person color="action" />
+                                    </InputAdornment>
+                                ),
+                                sx: {
+                                    borderRadius: 2,
+                                },
+                            }}
+                        />
+
+                        <TextField
+                            label="Пароль"
+                            type={showPassword ? "text" : "password"}
+                            variant="outlined"
+                            fullWidth
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            disabled={loading}
+                            onKeyPress={handleKeyPress}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Lock color="action" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                                sx: {
+                                    borderRadius: 2,
+                                },
+                            }}
+                        />
+
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: -1 }}>
+                            Пароль должен содержать не менее 6 символов
+                        </Typography>
+
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            onClick={handleRegister}
+                            disabled={loading || !username || password.length < 6}
+                            sx={{
+                                bgcolor: "#1e3a8a",
+                                "&:hover": { bgcolor: "#1e40af" },
+                                py: 1.5,
+                                borderRadius: 2,
+                                textTransform: "none",
+                                fontSize: "1rem",
+                                boxShadow: 2,
+                                mt: 2,
+                            }}
+                        >
+                            {loading ? (
+                                <>
+                                    <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                                    Регистрируем...
+                                </>
+                            ) : (
+                                "Зарегистрироваться"
+                            )}
+                        </Button>
+
+                        <Divider sx={{ my: 1 }} />
+
+                        <Typography variant="body2" align="center" color="text.secondary">
+                            Уже есть аккаунт?{" "}
+                            <Link
+                                href="/login"
+                                underline="hover"
+                                sx={{
+                                    color: "#1e3a8a",
+                                    fontWeight: "medium",
+                                    textDecoration: "none",
+                                    "&:hover": {
+                                        textDecoration: "underline",
+                                    },
+                                }}
+                            >
+                                Войдите
+                            </Link>
+                        </Typography>
+                    </Stack>
+                </Box>
             </Paper>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 4, opacity: 0.7 }}>
+                © {new Date().getFullYear()} CarHouse. Все права защищены.
+            </Typography>
         </Box>
-    );
+    )
 }

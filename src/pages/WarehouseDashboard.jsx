@@ -2,6 +2,7 @@
 
 // Версия с формой добавления товара и подтверждением продажи
 import { useState, useEffect } from "react"
+
 import {
     Container,
     Typography,
@@ -352,7 +353,7 @@ export default function WarehouseDashboard() {
                 <Toolbar>
                     <DirectionsCar sx={{ mr: 2, fontSize: 32 }} />
                     <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: "bold" }}>
-                        CarHouse
+                        DragonAuto
                     </Typography>
                     <Button color="inherit" startIcon={<ReceiptLong />} onClick={() => (window.location.href = "/sales")}>
                         Продажи

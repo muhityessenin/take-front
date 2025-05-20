@@ -286,7 +286,7 @@ export default function SalesDashboard() {
                     </IconButton>
                     <DirectionsCar sx={{ mr: 2, fontSize: 32 }} />
                     <Typography variant="h5" component="div" sx={{ flexGrow: 1, fontWeight: "bold" }}>
-                        CarHouse
+                        DragonAuto
                     </Typography>
                     <Button color="inherit" startIcon={<Inventory />} onClick={() => (window.location.href = "/")}>
                         Склад

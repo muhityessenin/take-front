@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import axios from "axios";
+"use client"
 
+import { useState, useEffect } from "react"
+import axios from "axios"
 import {
-    Container,
     Box,
     TextField,
     Typography,
@@ -11,60 +11,115 @@ import {
     useMediaQuery,
     useTheme,
     Link,
-    CircularProgress
-} from "@mui/material";
+    CircularProgress,
+    Paper,
+    InputAdornment,
+    IconButton,
+    Divider,
+} from "@mui/material"
+import { Visibility, VisibilityOff, Person, Lock, DirectionsCar } from "@mui/icons-material"
 
 export default function LoginPage() {
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false); // <- добавляем состояние загрузки
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+    const [username, setUsername] = useState("")
+    const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const [mounted, setMounted] = useState(false)
+
+    // Устанавливаем mounted в true после монтирования компонента
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const handleLogin = async () => {
-        setLoading(true); // включаем загрузку
+        setLoading(true)
         try {
             const response = await axios.post("https://take-backend-yibv.onrender.com/api/login", {
                 username,
-                password
-            });
-            const token = response.data.token;
-            localStorage.setItem("authToken", token);
-            window.location.href = "/warehouse";
+                password,
+            })
+            const token = response.data.token
+            localStorage.setItem("authToken", token)
+            window.location.href = "/warehouse"
         } catch (error) {
             if (error.response && error.response.status === 401) {
-                alert("Неправильный логин или пароль");
+                alert("Неправильный логин или пароль")
             } else {
-                console.error(error);
-                alert("Ошибка при входе. Попробуйте позже");
+                console.error(error)
+                alert("Ошибка при входе. Попробуйте позже")
             }
         } finally {
-            setLoading(false); // выключаем загрузку
+            setLoading(false)
         }
-    };
+    }
+
+    const handleKeyPress = (e) => {
+        if (e.key === "Enter") {
+            handleLogin()
+        }
+    }
 
     return (
-        <Container maxWidth="xs">
-            <Box
-                minHeight="100vh"
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
+        <Box
+            sx={{
+                minHeight: "100vh",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+                padding: 2,
+                opacity: mounted ? 1 : 0,
+                transition: "opacity 0.8s ease-in-out",
+            }}
+        >
+            <Paper
+                elevation={4}
+                sx={{
+                    width: "100%",
+                    maxWidth: 400,
+                    borderRadius: 3,
+                    overflow: "hidden",
+                }}
             >
+                {/* Верхняя часть с логотипом */}
                 <Box
                     sx={{
-                        width: "100%",
-                        backgroundColor: "white",
-                        p: 4,
-                        borderRadius: 2,
-                        boxShadow: 3
+                        bgcolor: "#1e3a8a",
+                        color: "white",
+                        py: 3,
+                        px: 4,
+                        textAlign: "center",
+                        position: "relative",
                     }}
                 >
-                    <Typography variant="h5" mb={3} align="center" color="primary">
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            mb: 1,
+                        }}
+                    >
+                        <DirectionsCar sx={{ fontSize: 40, mr: 1 }} />
+                        <Typography variant="h4" component="h1" sx={{ fontWeight: "bold" }}>
+                            DragonAuto
+                        </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                        Система управления автоскладом
+                    </Typography>
+                </Box>
+
+                {/* Форма входа */}
+                <Box sx={{ p: 4 }}>
+                    <Typography variant="h6" sx={{ mb: 3, fontWeight: "medium", color: "#1e3a8a" }}>
                         Вход в систему
                     </Typography>
 
-                    <Stack spacing={2}>
+                    <Stack spacing={3}>
                         <TextField
                             label="Логин"
                             variant="outlined"
@@ -72,38 +127,102 @@ export default function LoginPage() {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             disabled={loading}
+                            onKeyPress={handleKeyPress}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Person color="action" />
+                                    </InputAdornment>
+                                ),
+                                sx: {
+                                    borderRadius: 2,
+                                },
+                            }}
                         />
 
                         <TextField
                             label="Пароль"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             variant="outlined"
                             fullWidth
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={loading}
+                            onKeyPress={handleKeyPress}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Lock color="action" />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                                sx: {
+                                    borderRadius: 2,
+                                },
+                            }}
                         />
 
                         <Button
                             variant="contained"
-                            color="primary"
                             fullWidth
                             onClick={handleLogin}
                             disabled={loading}
-                            startIcon={loading && <CircularProgress size={20} />}
+                            sx={{
+                                bgcolor: "#1e3a8a",
+                                "&:hover": { bgcolor: "#1e40af" },
+                                py: 1.5,
+                                borderRadius: 2,
+                                textTransform: "none",
+                                fontSize: "1rem",
+                                boxShadow: 2,
+                            }}
                         >
-                            {loading ? "Входим..." : "Войти"}
+                            {loading ? (
+                                <>
+                                    <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                                    Входим...
+                                </>
+                            ) : (
+                                "Войти"
+                            )}
                         </Button>
 
-                        <Typography variant="body2" align="center">
-                            Нет аккаунта?{' '}
-                            <Link href="/register" underline="hover">
+                        <Divider sx={{ my: 1 }} />
+
+                        <Typography variant="body2" align="center" color="text.secondary">
+                            Нет аккаунта?{" "}
+                            <Link
+                                href="/register"
+                                underline="hover"
+                                sx={{
+                                    color: "#1e3a8a",
+                                    fontWeight: "medium",
+                                    textDecoration: "none",
+                                    "&:hover": {
+                                        textDecoration: "underline",
+                                    },
+                                }}
+                            >
                                 Зарегистрируйтесь
                             </Link>
                         </Typography>
                     </Stack>
                 </Box>
-            </Box>
-        </Container>
-    );
+            </Paper>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 4, opacity: 0.7 }}>
+                © {new Date().getFullYear()} DragonAuto. Все права защищены.
+            </Typography>
+        </Box>
+    )
 }
